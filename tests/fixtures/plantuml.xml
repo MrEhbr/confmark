@@ -1,0 +1,6 @@
+<ac:structured-macro ac:name="plantuml" ac:schema-version="1">
+<ac:parameter ac:name="atlassian-macro-output-type">INLINE</ac:parameter>
+<ac:plain-text-body><![CDATA[component "A" as A
+component "B" as B
+A --> B]]></ac:plain-text-body>
+</ac:structured-macro>

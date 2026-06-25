@@ -1,0 +1,4 @@
+<ac:structured-macro ac:name="mermaiddiagram" ac:schema-version="1">
+<ac:plain-text-body><![CDATA[flowchart LR
+    A[Start] --> B[Stop]]]></ac:plain-text-body>
+</ac:structured-macro>

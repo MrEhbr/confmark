@@ -1,0 +1,4 @@
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">rust</ac:parameter>
+<ac:plain-text-body><![CDATA[fn main() {}]]></ac:plain-text-body>
+</ac:structured-macro>

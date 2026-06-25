@@ -1,0 +1,4 @@
+<ac:structured-macro ac:name="note"><ac:rich-text-body><p>a note</p></ac:rich-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="tip"><ac:rich-text-body><p>a tip</p></ac:rich-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="warning"><ac:rich-text-body><p>a warning</p></ac:rich-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info"><ac:rich-text-body><p>an info</p></ac:rich-text-body></ac:structured-macro>

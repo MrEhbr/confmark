@@ -1,0 +1,65 @@
+[package]
+name = "confmark"
+version = "0.1.0"
+edition = "2024"
+repository = "https://github.com/MrEhbr/confmark"
+license = "MIT"
+description = "Bidirectional CLI tool for converting Markdown to Confluence markup and Confluence markup back to Markdown."
+readme = "README.md"
+keywords = ["markdown", "confluence", "converter", "cli", "commonmark"]
+categories = ["command-line-utilities", "text-processing"]
+
+[lib]
+name = "confmark"
+path = "src/lib.rs"
+
+[[bin]]
+name = "confmark"
+path = "src/main.rs"
+
+[features]
+default = []
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+comrak = { version = "0.52.0", default-features = false }
+percent-encoding = "2.3.2"
+quick-xml = "0.37"
+
+[dev-dependencies]
+assert_cmd = "2.1"
+predicates = "3.1"
+rstest = "0.23"
+
+[workspace.metadata.bin]
+cargo-llvm-cov = "0.6"
+
+# Map `cargo binstall confmark` onto the GoReleaser release assets, whose names
+# use titlecased OS + Go-style arch (e.g. confmark_Linux_x86_64.tar.gz) rather
+# than the Rust target triple, so each target needs an explicit URL.
+[package.metadata.binstall]
+pkg-fmt = "tgz"
+bin-dir = "{ bin }{ binary-ext }"
+
+[package.metadata.binstall.overrides.x86_64-unknown-linux-gnu]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }_Linux_x86_64.tar.gz"
+
+[package.metadata.binstall.overrides.aarch64-unknown-linux-gnu]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }_Linux_arm64.tar.gz"
+
+[package.metadata.binstall.overrides.x86_64-apple-darwin]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }_Darwin_x86_64.tar.gz"
+
+[package.metadata.binstall.overrides.aarch64-apple-darwin]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }_Darwin_arm64.tar.gz"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
