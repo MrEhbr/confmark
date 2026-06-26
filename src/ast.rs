@@ -130,3 +130,235 @@ impl Macro {
             .map(|(_, v)| v.as_str())
     }
 }
+
+/// A node visited during a [`Document`] traversal.
+enum Node<'a> {
+    Block(&'a Block),
+    Inline(&'a Inline),
+}
+
+impl<'a> Node<'a> {
+    fn block(self) -> Option<&'a Block> {
+        match self {
+            Node::Block(block) => Some(block),
+            Node::Inline(_) => None,
+        }
+    }
+
+    fn inline(self) -> Option<&'a Inline> {
+        match self {
+            Node::Inline(inline) => Some(inline),
+            Node::Block(_) => None,
+        }
+    }
+}
+
+impl Document {
+    /// Iterates over every [`Block`] in the document in depth-first pre-order,
+    /// including blocks nested in list items, block quotes, and macro bodies.
+    ///
+    /// ```
+    /// use confmark::{Document, ast::Block};
+    ///
+    /// let doc = Document::from_markdown("# Title\n\n## Section\n\ntext");
+    /// let levels: Vec<u8> = doc
+    ///     .blocks()
+    ///     .filter_map(|block| match block {
+    ///         Block::Heading { level, .. } => Some(*level),
+    ///         _ => None,
+    ///     })
+    ///     .collect();
+    /// assert_eq!(levels, [1, 2]);
+    /// ```
+    pub fn blocks(&self) -> impl Iterator<Item = &Block> {
+        self.walk().filter_map(Node::block)
+    }
+
+    /// Iterates over every [`Inline`] in the document in depth-first pre-order,
+    /// descending through nested inlines and every block that carries inline
+    /// content (headings, paragraphs, task lists, table cells, macro bodies).
+    ///
+    /// ```
+    /// use confmark::{
+    ///     Document,
+    ///     ast::{Inline, LinkTarget},
+    /// };
+    ///
+    /// let doc = Document::from_markdown("see [a](https://a.test) and [b](https://b.test)");
+    /// let urls: Vec<&str> = doc
+    ///     .inlines()
+    ///     .filter_map(|inline| match inline {
+    ///         Inline::Link {
+    ///             target: LinkTarget::External(url),
+    ///             ..
+    ///         } => Some(url.as_str()),
+    ///         _ => None,
+    ///     })
+    ///     .collect();
+    /// assert_eq!(urls, ["https://a.test", "https://b.test"]);
+    /// ```
+    pub fn inlines(&self) -> impl Iterator<Item = &Inline> {
+        self.walk().filter_map(Node::inline)
+    }
+
+    fn walk(&self) -> std::vec::IntoIter<Node<'_>> {
+        let mut out = Vec::new();
+        for block in &self.blocks {
+            block.walk(&mut out);
+        }
+        out.into_iter()
+    }
+}
+
+impl Block {
+    fn walk<'a>(&'a self, out: &mut Vec<Node<'a>>) {
+        out.push(Node::Block(self));
+        match self {
+            Block::Heading { content, .. } | Block::Paragraph(content) => {
+                for inline in content {
+                    inline.walk(out);
+                }
+            },
+            Block::List { items, .. } => {
+                for block in items.iter().flatten() {
+                    block.walk(out);
+                }
+            },
+            Block::TaskList(tasks) => {
+                for inline in tasks.iter().flat_map(|task| &task.content) {
+                    inline.walk(out);
+                }
+            },
+            Block::BlockQuote(blocks) => {
+                for block in blocks {
+                    block.walk(out);
+                }
+            },
+            Block::Table(table) => table.walk(out),
+            Block::Macro(mac) => mac.walk(out),
+            Block::CodeBlock { .. } | Block::ThematicBreak | Block::RawConfluence(_) => {},
+        }
+    }
+}
+
+impl Inline {
+    fn walk<'a>(&'a self, out: &mut Vec<Node<'a>>) {
+        out.push(Node::Inline(self));
+        match self {
+            Inline::Strong(content) | Inline::Emphasis(content) | Inline::Strikethrough(content) | Inline::Link { content, .. } => {
+                for inline in content {
+                    inline.walk(out);
+                }
+            },
+            Inline::Macro(mac) => mac.walk(out),
+            Inline::Text(_) | Inline::Code(_) | Inline::Image { .. } | Inline::SoftBreak | Inline::HardBreak | Inline::RawConfluence(_) => {},
+        }
+    }
+}
+
+impl Table {
+    fn walk<'a>(&'a self, out: &mut Vec<Node<'a>>) {
+        for cell in self.head.iter().chain(self.rows.iter().flatten()) {
+            for inline in cell {
+                inline.walk(out);
+            }
+        }
+    }
+}
+
+impl Macro {
+    fn walk<'a>(&'a self, out: &mut Vec<Node<'a>>) {
+        if let MacroBody::RichText(blocks) = &self.body {
+            for block in blocks {
+                block.walk(out);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    fn text(s: &str) -> Inline {
+        Inline::Text(s.to_string())
+    }
+
+    fn para(content: Vec<Inline>) -> Block {
+        Block::Paragraph(content)
+    }
+
+    fn link(url: &str, label: &str) -> Inline {
+        Inline::Link {
+            target: LinkTarget::External(url.to_string()),
+            title: None,
+            content: vec![text(label)],
+        }
+    }
+
+    fn panel(blocks: Vec<Block>) -> Block {
+        Block::Macro(Macro {
+            name: "panel".to_string(),
+            params: vec![],
+            body: MacroBody::RichText(blocks),
+        })
+    }
+
+    fn texts(doc: &Document) -> Vec<&str> {
+        doc.inlines()
+            .filter_map(|inline| match inline {
+                Inline::Text(t) => Some(t.as_str()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn external_urls(doc: &Document) -> Vec<&str> {
+        doc.inlines()
+            .filter_map(|inline| match inline {
+                Inline::Link {
+                    target: LinkTarget::External(url),
+                    ..
+                } => Some(url.as_str()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[rstest]
+    #[case::heading(Block::Heading { level: 1, content: vec![text("a"), link("https://x.test", "b")] }, vec!["a", "b"])]
+    #[case::block_quote(Block::BlockQuote(vec![para(vec![text("q")])]), vec!["q"])]
+    #[case::list(Block::List { ordered: false, items: vec![vec![para(vec![text("i1")]), para(vec![text("i2")])]] }, vec!["i1", "i2"])]
+    #[case::task_list(Block::TaskList(vec![Task { checked: false, content: vec![text("t")] }]), vec!["t"])]
+    #[case::table(
+        Block::Table(Table { align: vec![Alignment::None], head: vec![vec![text("h")]], rows: vec![vec![vec![text("c")]]] }),
+        vec!["h", "c"]
+    )]
+    #[case::macro_body(panel(vec![para(vec![text("inner")])]), vec!["inner"])]
+    #[case::nested_inline(para(vec![Inline::Strong(vec![text("s")])]), vec!["s"])]
+    fn inlines_visit_text_in_every_container(#[case] block: Block, #[case] expected: Vec<&str>) {
+        assert_eq!(texts(&Document { blocks: vec![block] }), expected);
+    }
+
+    #[rstest]
+    #[case::leaf(para(vec![text("x")]), 1)]
+    #[case::block_quote(Block::BlockQuote(vec![para(vec![text("q")])]), 2)]
+    #[case::list(Block::List { ordered: false, items: vec![vec![para(vec![text("a")]), para(vec![text("b")])]] }, 3)]
+    #[case::macro_body(panel(vec![para(vec![text("inner")])]), 2)]
+    fn blocks_count_includes_nested(#[case] block: Block, #[case] expected: usize) {
+        assert_eq!(Document { blocks: vec![block] }.blocks().count(), expected);
+    }
+
+    #[rstest]
+    #[case::top_level(vec![para(vec![link("https://a.test", "a")])], vec!["https://a.test"])]
+    #[case::nested_in_macro(vec![panel(vec![para(vec![link("https://nested.test", "n")])])], vec!["https://nested.test"])]
+    #[case::document_order(
+        vec![para(vec![link("https://1.test", "a")]), panel(vec![para(vec![link("https://2.test", "b")])])],
+        vec!["https://1.test", "https://2.test"]
+    )]
+    fn inlines_collect_external_links(#[case] blocks: Vec<Block>, #[case] expected: Vec<&str>) {
+        assert_eq!(external_urls(&Document { blocks }), expected);
+    }
+}

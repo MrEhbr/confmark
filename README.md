@@ -78,6 +78,23 @@ assert_eq!(md, "# Title");
 `Document` is the entry point: `from_markdown` / `from_confluence` parse,
 `to_markdown` / `to_confluence` render.
 
+The shared AST is also traversable for extracting data — `blocks()` and
+`inlines()` yield every node in depth-first document order:
+
+```rust
+use confmark::{Document, ast::{Inline, LinkTarget}};
+
+let doc = Document::from_markdown("see [a](https://a.test) and [b](https://b.test)");
+let urls: Vec<&str> = doc
+    .inlines()
+    .filter_map(|inline| match inline {
+        Inline::Link { target: LinkTarget::External(url), .. } => Some(url.as_str()),
+        _ => None,
+    })
+    .collect();
+assert_eq!(urls, ["https://a.test", "https://b.test"]);
+```
+
 ## Supported constructs
 
 | Group | Coverage |
