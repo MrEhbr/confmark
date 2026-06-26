@@ -1,6 +1,8 @@
 # confmark
 
 [![CI](https://github.com/MrEhbr/confmark/actions/workflows/checks.yml/badge.svg)](https://github.com/MrEhbr/confmark/actions)
+[![crates.io](https://img.shields.io/crates/v/confmark.svg)](https://crates.io/crates/confmark)
+[![docs.rs](https://img.shields.io/docsrs/confmark)](https://docs.rs/confmark)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024+-orange)](https://www.rust-lang.org)
 
