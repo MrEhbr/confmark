@@ -6,6 +6,9 @@
 //! [`Document::to_confluence`]. Each format's parse + render live in its module
 //! ([`markdown`], [`confluence`]); the shared node types live in [`ast`].
 //!
+//! The AST is also traversable via [`Document::blocks`] / [`Document::inlines`]
+//! for extracting data (links, headings, …) from a parsed document.
+//!
 //! # Examples
 //!
 //! ```
