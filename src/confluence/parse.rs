@@ -1,7 +1,8 @@
 //! Parser: Confluence Storage Format (XHTML) -> AST.
 
 use quick_xml::{
-    Reader,
+    Reader, XmlVersion,
+    escape::resolve_predefined_entity,
     events::{BytesStart, Event},
 };
 
@@ -36,11 +37,17 @@ impl Document {
                     }
                 },
                 Ok(Event::End(_)) => builder.end(),
-                Ok(Event::Text(e)) => builder.text(
-                    &e.unescape_with(resolve_entity)
-                        .map(|c| c.into_owned())
-                        .unwrap_or_default(),
-                ),
+                Ok(Event::Text(e)) => builder.text(&e.decode().unwrap_or_default()),
+                Ok(Event::GeneralRef(r)) => match r.resolve_char_ref() {
+                    Ok(Some(ch)) => builder.text(ch.encode_utf8(&mut [0u8; 4])),
+                    _ => {
+                        let name = r.decode().unwrap_or_default();
+                        match resolve_predefined_entity(&name).or_else(|| resolve_entity(&name)) {
+                            Some(s) => builder.text(s),
+                            None => builder.text(&format!("&{name};")),
+                        }
+                    },
+                },
                 Ok(Event::CData(e)) => builder.cdata(String::from_utf8_lossy(&e.into_inner()).into_owned()),
                 Ok(Event::Eof) => break,
                 Ok(_) => {},
@@ -523,7 +530,11 @@ fn attr(e: &BytesStart, key: &[u8]) -> Option<String> {
     e.attributes()
         .flatten()
         .find(|a| a.key.as_ref() == key)
-        .and_then(|a| a.unescape_value().ok().map(|v| v.into_owned()))
+        .and_then(|a| {
+            a.normalized_value(XmlVersion::Implicit1_0)
+                .ok()
+                .map(|v| v.into_owned())
+        })
 }
 
 fn resolve_entity(name: &str) -> Option<&'static str> {
