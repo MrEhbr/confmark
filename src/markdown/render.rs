@@ -239,12 +239,16 @@ impl Md<&LinkTarget> {
     fn url(&self) -> String {
         match self.0 {
             LinkTarget::External(url) => url.clone(),
-            LinkTarget::Page { space, title } => {
+            LinkTarget::Page { space, title, content_id } => {
                 let space = space
                     .as_ref()
                     .map(|s| format!("space={}&", s.encode_uri()))
                     .unwrap_or_default();
-                format!("confluence://page?{space}title={}", title.encode_uri())
+                let id = content_id
+                    .as_ref()
+                    .map(|id| format!("&id={}", id.encode_uri()))
+                    .unwrap_or_default();
+                format!("confluence://page?{space}title={}{id}", title.encode_uri())
             },
             LinkTarget::Content(id) => format!("confluence://content?id={}", id.encode_uri()),
             LinkTarget::Attachment(file) => format!("confluence://attachment?file={}", file.encode_uri()),

@@ -331,9 +331,10 @@ impl Builder {
             b"ri:page" => {
                 let target = match (attr(e, b"ri:content-title"), attr(e, b"ri:content-id")) {
                     (None, Some(id)) => LinkTarget::Content(id),
-                    (title, _) => LinkTarget::Page {
+                    (title, content_id) => LinkTarget::Page {
                         space: attr(e, b"ri:space-key"),
                         title: title.unwrap_or_default(),
+                        content_id,
                     },
                 };
                 self.set_link_target(target);
@@ -348,8 +349,10 @@ impl Builder {
             },
             b"ri:url" => {
                 let url = attr(e, b"ri:value").unwrap_or_default();
-                if let Some(Frame::AcImage { source, .. }) = self.stack.last_mut() {
-                    *source = Some(ImageSource::External(url));
+                match self.stack.last_mut() {
+                    Some(Frame::AcImage { source, .. }) => *source = Some(ImageSource::External(url)),
+                    Some(Frame::AcLink { target, .. }) => *target = Some(LinkTarget::External(url)),
+                    _ => {},
                 }
             },
             _ => return false,

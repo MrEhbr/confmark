@@ -17,6 +17,7 @@ fn fixture(name: &str, ext: &str) -> String {
 #[case("plantuml")]
 #[case("links")]
 #[case("link-page")]
+#[case("link-page-id")]
 #[case("link-attachment")]
 #[case("link-anchor")]
 #[case("link-content-id")]

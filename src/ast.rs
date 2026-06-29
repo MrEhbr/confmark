@@ -68,8 +68,11 @@ pub enum LinkTarget {
     Page {
         space: Option<String>,
         title: String,
+        /// The page's numeric `ri:content-id`, when storage carries one.
+        content_id: Option<String>,
     },
-    /// A page referenced by numeric content id (`ri:content-id`).
+    /// A page referenced solely by numeric content id (`ri:content-id`), with
+    /// no title.
     Content(String),
     Attachment(String),
     Anchor(String),
