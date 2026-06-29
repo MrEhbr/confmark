@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [0.3.0](https://github.com/MrEhbr/confmark/compare/v0.2.0..v0.3.0) - 2026-06-29
+
+### Features
+
+- **(confluence)** support ri:content-id page links - ([9b074b7](https://github.com/MrEhbr/confmark/commit/9b074b7e8f0c12d05481f27cc4dd99f357790a8e)) `+50 / -6 across 11 file(s)` - Aleksei Burmistrov
+
+### Statistics
+
+- 1 commit(s) contributed to the release.
+- 0 day(s) between first and last commit.
+- 1 commit(s) parsed as conventional.
+- Diff totals: +50 / -6 across 11 file change(s) (sum across commits, may double-count files touched in multiple commits).
+- 3 day(s) since the previous release.
+
 ## [0.2.0](https://github.com/MrEhbr/confmark/compare/v0.1.1..v0.2.0) - 2026-06-26
 
 ### Documentation
