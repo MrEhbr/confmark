@@ -46,7 +46,7 @@ reversible `confluence://` URI (query values are percent-encoded).
 | AST `LinkTarget` | Markdown | Confluence Storage |
 |---|---|---|
 | `External(url)` | `[t](url)` | `<a href="url" [title]>t</a>` |
-| `Page { space, title }` | `[t](confluence://page?space=SP&title=T)` | `<ac:link><ri:page ri:content-title="T" [ri:space-key="SP"]/><ac:link-body>t</ac:link-body></ac:link>` |
+| `Page { space, title, content_id }` | `[t](confluence://page?space=SP&title=T[&id=N])` | `<ac:link><ri:page ri:content-title="T" [ri:space-key="SP"] [ri:content-id="N"]/><ac:link-body>t</ac:link-body></ac:link>` |
 | `Content(id)` | `[t](confluence://content?id=N)` | `<ac:link><ri:content-entity ri:content-id="N"/><ac:link-body>t</ac:link-body></ac:link>` |
 | `Attachment(file)` | `[t](confluence://attachment?file=F)` | `<ac:link><ri:attachment ri:filename="F"/><ac:link-body>t</ac:link-body></ac:link>` |
 | `Anchor(name)` | `[t](confluence://anchor?name=N)` | `<ac:link ac:anchor="N"><ac:link-body>t</ac:link-body></ac:link>` |

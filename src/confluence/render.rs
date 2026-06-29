@@ -200,13 +200,21 @@ impl Cf<&LinkTarget> {
                     .unwrap_or_default();
                 format!("<a href=\"{}\"{title_attr}>{body}</a>", url.escape_attr())
             },
-            LinkTarget::Page { space, title: page } => {
+            LinkTarget::Page {
+                space,
+                title: page,
+                content_id,
+            } => {
                 let space_attr = space
                     .as_ref()
                     .map(|s| format!(" ri:space-key=\"{}\"", s.escape_attr()))
                     .unwrap_or_default();
+                let id_attr = content_id
+                    .as_ref()
+                    .map(|id| format!(" ri:content-id=\"{}\"", id.escape_attr()))
+                    .unwrap_or_default();
                 format!(
-                    "<ac:link><ri:page ri:content-title=\"{}\"{space_attr}/><ac:link-body>{body}</ac:link-body></ac:link>",
+                    "<ac:link><ri:page ri:content-title=\"{}\"{space_attr}{id_attr}/><ac:link-body>{body}</ac:link-body></ac:link>",
                     page.escape_attr()
                 )
             },

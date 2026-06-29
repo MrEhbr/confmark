@@ -36,8 +36,9 @@ fn renders_inline(#[case] inline: Inline, #[case] expected: &str) {
 }
 
 #[rstest]
-#[case(LinkTarget::Page { space: Some("SP".into()), title: "Home".into() }, "confluence://page?space=SP&title=Home")]
-#[case(LinkTarget::Page { space: None, title: "On Track".into() }, "confluence://page?title=On%20Track")]
+#[case(LinkTarget::Page { space: Some("SP".into()), title: "Home".into(), content_id: None }, "confluence://page?space=SP&title=Home")]
+#[case(LinkTarget::Page { space: None, title: "On Track".into(), content_id: None }, "confluence://page?title=On%20Track")]
+#[case(LinkTarget::Page { space: Some("PAYM".into()), title: "Runbook".into(), content_id: Some("456".into()) }, "confluence://page?space=PAYM&title=Runbook&id=456")]
 #[case(LinkTarget::Content("12345".into()), "confluence://content?id=12345")]
 #[case(LinkTarget::Attachment("a.pdf".into()), "confluence://attachment?file=a.pdf")]
 #[case(LinkTarget::Anchor("intro".into()), "confluence://anchor?name=intro")]
@@ -86,7 +87,8 @@ fn parses_internal_page_link() {
         vec![Block::Paragraph(vec![Inline::Link {
             target: LinkTarget::Page {
                 space: Some("SP".into()),
-                title: "Home".into()
+                title: "Home".into(),
+                content_id: None,
             },
             title: None,
             content: vec![text("Home")],

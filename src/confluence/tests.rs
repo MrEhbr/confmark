@@ -28,7 +28,8 @@ fn para_link(target: LinkTarget, label: &str) -> Vec<Block> {
         Block::CodeBlock { language: Some("rust".into()), code: "fn main() {}".into() },
     ])]
 #[case("links.xml", para_link(LinkTarget::External("https://www.atlassian.com".into()), "Atlassian"))]
-#[case("link-page.xml", para_link(LinkTarget::Page { space: Some("SP".into()), title: "Home".into() }, "Home"))]
+#[case("link-page.xml", para_link(LinkTarget::Page { space: Some("SP".into()), title: "Home".into(), content_id: None }, "Home"))]
+#[case("link-page-id.xml", para_link(LinkTarget::Page { space: Some("PAYM".into()), title: "Runbook".into(), content_id: Some("456".into()) }, "Runbook"))]
 #[case("link-attachment.xml", para_link(LinkTarget::Attachment("a.pdf".into()), "doc"))]
 #[case("link-anchor.xml", para_link(LinkTarget::Anchor("intro".into()), "intro"))]
 #[case("link-content-id.xml", para_link(LinkTarget::Content("12345".into()), "Quarterly Plan"))]
@@ -48,6 +49,7 @@ fn renders_to_fixture(#[case] fixture: &str, #[case] blocks: Vec<Block>) {
         "code.xml" => include_str!("../../tests/fixtures/code.xml"),
         "links.xml" => include_str!("../../tests/fixtures/links.xml"),
         "link-page.xml" => include_str!("../../tests/fixtures/link-page.xml"),
+        "link-page-id.xml" => include_str!("../../tests/fixtures/link-page-id.xml"),
         "link-attachment.xml" => include_str!("../../tests/fixtures/link-attachment.xml"),
         "link-anchor.xml" => include_str!("../../tests/fixtures/link-anchor.xml"),
         "link-content-id.xml" => include_str!("../../tests/fixtures/link-content-id.xml"),
@@ -98,6 +100,34 @@ fn parses_ri_page_content_id_as_content_target() {
     assert_eq!(
         parsed.to_confluence(),
         "<p><ac:link><ri:content-entity ri:content-id=\"12345\"/><ac:link-body>Plan</ac:link-body></ac:link></p>"
+    );
+}
+
+#[rstest]
+fn ri_page_keeps_content_id_alongside_title() {
+    let xml =
+        "<p><ac:link><ri:page ri:content-id=\"456\" ri:content-title=\"Runbook\" ri:space-key=\"PAYM\"/><ac:link-body>Runbook</ac:link-body></ac:link></p>";
+    let parsed = Document::from_confluence(xml);
+    assert_eq!(
+        parsed.blocks,
+        para_link(
+            LinkTarget::Page {
+                space: Some("PAYM".into()),
+                title: "Runbook".into(),
+                content_id: Some("456".into())
+            },
+            "Runbook"
+        )
+    );
+}
+
+#[rstest]
+fn reads_ri_url_inside_ac_link() {
+    let xml = "<p><ac:link><ri:url ri:value=\"/display/PAYM/Other\"/><ac:link-body>Other</ac:link-body></ac:link></p>";
+    let parsed = Document::from_confluence(xml);
+    assert_eq!(
+        parsed.blocks,
+        para_link(LinkTarget::External("/display/PAYM/Other".into()), "Other")
     );
 }
 
