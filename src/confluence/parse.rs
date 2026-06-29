@@ -329,9 +329,18 @@ impl Builder {
             b"hr" => self.push_block(Block::ThematicBreak),
             b"br" => self.push_inline(Inline::HardBreak),
             b"ri:page" => {
-                let title = attr(e, b"ri:content-title").unwrap_or_default();
-                let space = attr(e, b"ri:space-key");
-                self.set_link_target(LinkTarget::Page { space, title });
+                let target = match (attr(e, b"ri:content-title"), attr(e, b"ri:content-id")) {
+                    (None, Some(id)) => LinkTarget::Content(id),
+                    (title, _) => LinkTarget::Page {
+                        space: attr(e, b"ri:space-key"),
+                        title: title.unwrap_or_default(),
+                    },
+                };
+                self.set_link_target(target);
+            },
+            b"ri:content-entity" => {
+                let id = attr(e, b"ri:content-id").unwrap_or_default();
+                self.set_link_target(LinkTarget::Content(id));
             },
             b"ri:attachment" => {
                 let file = attr(e, b"ri:filename").unwrap_or_default();

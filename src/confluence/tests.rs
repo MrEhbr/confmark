@@ -31,6 +31,7 @@ fn para_link(target: LinkTarget, label: &str) -> Vec<Block> {
 #[case("link-page.xml", para_link(LinkTarget::Page { space: Some("SP".into()), title: "Home".into() }, "Home"))]
 #[case("link-attachment.xml", para_link(LinkTarget::Attachment("a.pdf".into()), "doc"))]
 #[case("link-anchor.xml", para_link(LinkTarget::Anchor("intro".into()), "intro"))]
+#[case("link-content-id.xml", para_link(LinkTarget::Content("12345".into()), "Quarterly Plan"))]
 #[case("image.xml", vec![
         Block::Paragraph(vec![Inline::Image { source: ImageSource::External("https://example.com/logo.png".into()), alt: "logo".into() }]),
     ])]
@@ -49,6 +50,7 @@ fn renders_to_fixture(#[case] fixture: &str, #[case] blocks: Vec<Block>) {
         "link-page.xml" => include_str!("../../tests/fixtures/link-page.xml"),
         "link-attachment.xml" => include_str!("../../tests/fixtures/link-attachment.xml"),
         "link-anchor.xml" => include_str!("../../tests/fixtures/link-anchor.xml"),
+        "link-content-id.xml" => include_str!("../../tests/fixtures/link-content-id.xml"),
         "image.xml" => include_str!("../../tests/fixtures/image.xml"),
         "image-attachment.xml" => include_str!("../../tests/fixtures/image-attachment.xml"),
         "blockquote.xml" => include_str!("../../tests/fixtures/blockquote.xml"),
@@ -84,6 +86,19 @@ fn alignment_is_dropped_md_to_cf() {
     let aligned = Document::from_markdown("| A | B |\n| :-- | --: |\n| 1 | 2 |");
     let expected = include_str!("../../tests/fixtures/table.xml").trim_end_matches('\n');
     assert_eq!(aligned.to_confluence(), expected);
+}
+
+#[rstest]
+fn parses_ri_page_content_id_as_content_target() {
+    // Cloud form: a page link by numeric content id, no content-title. It
+    // normalizes to ri:content-entity on render.
+    let xml = "<p><ac:link><ri:page ri:content-id=\"12345\"/><ac:link-body>Plan</ac:link-body></ac:link></p>";
+    let parsed = Document::from_confluence(xml);
+    assert_eq!(parsed.blocks, para_link(LinkTarget::Content("12345".into()), "Plan"));
+    assert_eq!(
+        parsed.to_confluence(),
+        "<p><ac:link><ri:content-entity ri:content-id=\"12345\"/><ac:link-body>Plan</ac:link-body></ac:link></p>"
+    );
 }
 
 #[rstest]

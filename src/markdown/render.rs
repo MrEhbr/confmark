@@ -246,6 +246,7 @@ impl Md<&LinkTarget> {
                     .unwrap_or_default();
                 format!("confluence://page?{space}title={}", title.encode_uri())
             },
+            LinkTarget::Content(id) => format!("confluence://content?id={}", id.encode_uri()),
             LinkTarget::Attachment(file) => format!("confluence://attachment?file={}", file.encode_uri()),
             LinkTarget::Anchor(name) => format!("confluence://anchor?name={}", name.encode_uri()),
         }

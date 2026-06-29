@@ -38,6 +38,7 @@ fn renders_inline(#[case] inline: Inline, #[case] expected: &str) {
 #[rstest]
 #[case(LinkTarget::Page { space: Some("SP".into()), title: "Home".into() }, "confluence://page?space=SP&title=Home")]
 #[case(LinkTarget::Page { space: None, title: "On Track".into() }, "confluence://page?title=On%20Track")]
+#[case(LinkTarget::Content("12345".into()), "confluence://content?id=12345")]
 #[case(LinkTarget::Attachment("a.pdf".into()), "confluence://attachment?file=a.pdf")]
 #[case(LinkTarget::Anchor("intro".into()), "confluence://anchor?name=intro")]
 fn link_target_uri_roundtrips(#[case] target: LinkTarget, #[case] url: &str) {
