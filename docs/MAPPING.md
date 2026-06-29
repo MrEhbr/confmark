@@ -47,8 +47,12 @@ reversible `confluence://` URI (query values are percent-encoded).
 |---|---|---|
 | `External(url)` | `[t](url)` | `<a href="url" [title]>t</a>` |
 | `Page { space, title }` | `[t](confluence://page?space=SP&title=T)` | `<ac:link><ri:page ri:content-title="T" [ri:space-key="SP"]/><ac:link-body>t</ac:link-body></ac:link>` |
+| `Content(id)` | `[t](confluence://content?id=N)` | `<ac:link><ri:content-entity ri:content-id="N"/><ac:link-body>t</ac:link-body></ac:link>` |
 | `Attachment(file)` | `[t](confluence://attachment?file=F)` | `<ac:link><ri:attachment ri:filename="F"/><ac:link-body>t</ac:link-body></ac:link>` |
 | `Anchor(name)` | `[t](confluence://anchor?name=N)` | `<ac:link ac:anchor="N"><ac:link-body>t</ac:link-body></ac:link>` |
+
+Confluence Cloud also emits page-by-id links as `<ri:page ri:content-id="N"/>` (no
+`ri:content-title`); these parse to `Content(id)` and normalize to `ri:content-entity` on render.
 
 | AST `ImageSource` | Markdown | Confluence Storage |
 |---|---|---|

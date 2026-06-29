@@ -19,6 +19,7 @@ fn fixture(name: &str, ext: &str) -> String {
 #[case("link-page")]
 #[case("link-attachment")]
 #[case("link-anchor")]
+#[case("link-content-id")]
 #[case("image")]
 #[case("image-attachment")]
 #[case("blockquote")]

@@ -59,12 +59,18 @@ pub enum Inline {
 }
 
 /// The destination of a [`Inline::Link`]. External links carry a URL; the
-/// others are Confluence resource references (`ri:page` / `ri:attachment` /
-/// anchor) that round-trip through Markdown as a `confluence://` URI.
+/// others are Confluence resource references (`ri:page` / `ri:content-entity` /
+/// `ri:attachment` / anchor) that round-trip through Markdown as a
+/// `confluence://` URI.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LinkTarget {
     External(String),
-    Page { space: Option<String>, title: String },
+    Page {
+        space: Option<String>,
+        title: String,
+    },
+    /// A page referenced by numeric content id (`ri:content-id`).
+    Content(String),
     Attachment(String),
     Anchor(String),
 }

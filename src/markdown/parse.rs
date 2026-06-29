@@ -287,6 +287,7 @@ impl LinkTarget {
                 space: get("space"),
                 title: get("title").unwrap_or_default(),
             },
+            "content" => LinkTarget::Content(get("id").unwrap_or_default()),
             "attachment" => LinkTarget::Attachment(get("file").unwrap_or_default()),
             "anchor" => LinkTarget::Anchor(get("name").unwrap_or_default()),
             _ => LinkTarget::External(url.to_string()),

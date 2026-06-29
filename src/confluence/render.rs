@@ -210,6 +210,10 @@ impl Cf<&LinkTarget> {
                     page.escape_attr()
                 )
             },
+            LinkTarget::Content(id) => format!(
+                "<ac:link><ri:content-entity ri:content-id=\"{}\"/><ac:link-body>{body}</ac:link-body></ac:link>",
+                id.escape_attr()
+            ),
             LinkTarget::Attachment(file) => format!(
                 "<ac:link><ri:attachment ri:filename=\"{}\"/><ac:link-body>{body}</ac:link-body></ac:link>",
                 file.escape_attr()
